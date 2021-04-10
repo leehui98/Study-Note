@@ -9,6 +9,8 @@ s.erase(0,1);//删除第0个元素及其后面的共1个元素
 
 s.insert(s.begin(),'1');//在第0个元素插入字符'1'
 
+s.substr(int pos,int num);//pos是位置，num是从这个位置开始的数量
+
 reverse(s.begin(),s.end());//反转字符串
 ```
 
@@ -60,9 +62,9 @@ vec.insert(vec.begin()+1,1);
 
 框架：结束条件--选择列表做选择，去递归，撤销选择
 
-## 全排列
+## 1.全排列
 
-### 一个字符串/整数的全排列
+### 1.一个字符串/整数的全排列
 
 程序运行的结果是比所给整数大的最小的数字，使用的方法是全排列
 
@@ -102,7 +104,7 @@ int main()
 
 ```
 
-### 正确答案：从后往前找，找到后面的某个数字比前面大的相差最小的那一个，并将后面的数字从小到大排列
+### 2.正确答案：从后往前找，找到后面的某个数字比前面大的相差最小的那一个，并将后面的数字从小到大排列
 
 ```cpp
 int res2;
@@ -136,7 +138,7 @@ int main()
 }
 ```
 
-### 返回一个数组的全排列
+### 3.返回一个数组的全排列
 
 ```cpp
 #include<iostream>
@@ -178,15 +180,50 @@ int main()
 
 
 
-## 子集
+## 2.子集
 
 一个数组的全部子集。leetcode-76
 
-## 组合
+描述：返回数组中所有的子集
+
+输入：nums = [1,2,3]，输出：[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
+
+思路1：回溯，选择不选择
+
+```cpp
+#include<iostream>
+#include<vector>
+using namespace std;
+vector<vector<int>> res;
+void getRes(int index,vector<int> &nums,vector<int> ans){
+    if(index==nums.size()){
+        res.push_back(ans);
+        return ;
+    }
+    getRes(index+1,nums,ans);
+    ans.push_back(nums[index]);
+    getRes(index+1,nums,ans);
+}
+int main(){
+    res.clear();
+    vector<int> nums{1,2,3};
+    getRes(0,nums,{});
+    for(int i=0;i<res.size();i++){
+        for(int j=0;j<res[i].size();j++){
+            cout<<res[i][j]<<" ";
+        }
+        cout<<endl;
+    }
+}
+```
+
+思路2：递归得到子集。返回的时候要求几个vector就要返回几个中括号。
+
+## 3.组合
 
 leetcode-77
 
-## 数独
+## 4.数独
 
 ```cpp
 #include<iostream>
@@ -285,47 +322,6 @@ public:
     }
 };
 ```
-
-
-
-## leetcode-78.子集
-
-描述：返回数组中所有的子集
-
-输入：nums = [1,2,3]，输出：[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
-
-思路1：回溯，选择不选择
-
-```cpp
-#include<iostream>
-#include<vector>
-using namespace std;
-vector<vector<int>> res;
-void getRes(int index,vector<int> &nums,vector<int> ans){
-    if(index==nums.size()){
-        res.push_back(ans);
-        return ;
-    }
-    getRes(index+1,nums,ans);
-    ans.push_back(nums[index]);
-    getRes(index+1,nums,ans);
-}
-int main(){
-    res.clear();
-    vector<int> nums{1,2,3};
-    getRes(0,nums,{});
-    for(int i=0;i<res.size();i++){
-        for(int j=0;j<res[i].size();j++){
-            cout<<res[i][j]<<" ";
-        }
-        cout<<endl;
-    }
-}
-```
-
-思路2：递归得到子集。返回的时候要求几个vector就要返回几个中括号。
-
-
 
 
 
@@ -498,19 +494,27 @@ int main()
 }
 ```
 
-### 两数之和进阶思考
+两数之和进阶思考
 
 如果每次调用find，要考虑使用哈希map在添加的时候将和进行存储，find的时候时间复杂度就是O(1)。
 
+# 8. 双指针/滑动窗口
+
+## 8.1 二分查找
+
+- 查找一个数[left,right]，left=mid+1,right=mid-1,return mid;
+- 查找左边界[left,right)，left=mid+1,right=mid,return left;
+- 查找有边界[left,right)，left=mid+1,right=mid.return left-1;
 
 
-# 8. 其他算法
+
+# 其他算法
 
 
 
 ## 1.前缀和
 
-### leetcode-560. 和为K的子数组
+leetcode-560. 和为K的子数组
 
 适用于原始数组不会修改的情况，频繁查询某个区间的累加和。想求[i,j]的区间，用prefix[J+1]-pre[i]。prefix[i]表示[0,i)之间的元素和。
 
@@ -534,9 +538,154 @@ public:
 };
 ```
 
-## 2.差分数组/前缀和
+## 2.差分数组
 
 使用场景是频繁对原始数组的某个区间的元素进行增减。核心：<font color=red>改变区间元素</font>
 
+res[0]=diff[0]
 
+res[i]=res[i-1]+diff[i].
+
+leetcode-1109:航班飞机
+
+依次对航班飞机预定（依次修改数组某个区间中的元素），最后返回预定结果（最后返回数组被修改后的结果）
+
+```cpp
+#include<iostream>
+#include<vector>
+using namespace std;
+#define show(a) cout<<a;
+int main(){
+    vector<vector<int>> bookings = {{1,2,10},{2,3,20},{2,5,25}};
+    int n = 5;
+    vector<int> diff(n,0);
+    vector<int> res(n,0);
+    for(int i=0;i<bookings.size();i++){
+        int index1=bookings[i][0]-1;
+        int index2=bookings[i][1]-1;
+        int value=bookings[i][2];
+        diff[index1]+=value;
+        if(index2+1<n) diff[index2+1]-=value;
+    }
+    res[0]=diff[0];
+    for(int i=1;i<n;i++){
+        res[i]=res[i-1]+diff[i];
+    }
+    for(int i=0;i<res.size();i++){
+        cout<<res[i]<<" ";
+    }
+}
+```
+
+## 3. 快速选择算法
+
+给一个无序数组nums，和一个正整数k，返回nums中第k大的数
+
+```cpp
+//快速排序
+void qsort(vector<int> &nums,int left,int right){
+    if(left<right){
+        int i=left,j=right;
+        int x=nums[left];
+        while(i<j){
+            while(nums[j]>=x&&i<j){
+                j--;
+            }
+            if(i<j) nums[i]=nums[j];
+            while(nums[i]<=x&&i<j){
+                i++;
+            }
+            if(i<j) nums[j]=nums[i];
+        }
+        nums[i]=x;
+        qsort(nums,left,i-1);
+        qsort(nums,i+1,right);
+    }
+}
+//保持边界条件，最后把坑填上。left开始，j--。下一次递归式(left,i-1)；(i+1,right)。其实left<=right和left<right都可以
+
+```
+
+```cpp
+class Solution {
+public:
+    int getK(vector<int> &nums,int left,int right,int k){
+        if(left<=right){
+            int i=left,j=right,x=nums[left];
+            while(i<j){
+                while(nums[j]<=x&&i<j) j--;
+                if(i<j) nums[i++]=nums[j];
+                while(nums[i]>=x&&i<j) i++;
+                if(i<j) nums[j--]=nums[i];
+            }
+            nums[i]=x;
+            if(i==k-1) return nums[i];
+            else if(i<k-1) return getK(nums,i+1,right,k);
+            else if(i>k-1) return getK(nums,left,i-1,k);
+        }
+        return -1;
+    }
+    int findKthLargest(vector<int>& nums, int k) {
+        return getK(nums,0,nums.size()-1,k);   
+    }
+};
+//类似于快排，如果get到i==k-1,直接返回，否则去左边或者右边。注意结束条件是left<=right
+```
+
+
+
+## 4.分治算法：表达不同的优先级
+
+leetcode-241. 为运算表达式设计优先级
+
+核心思路：遇到+-*，分而治之，相当于二叉树的后序遍历
+
+```cpp
+class Solution
+{
+public:
+    vector<int> diffWaysToCompute(string expression)
+    {
+        vector<int> res;
+        for(int i=0; i<expression.size(); i++)
+        {
+            char ch=expression[i];
+            if(ch=='+'||ch=='-'||ch=='*')
+            {
+                vector<int> left=diffWaysToCompute(expression.substr(0,i));
+                vector<int> right=diffWaysToCompute(expression.substr(i+1,expression.size()-i-1));
+
+                for(int j=0; j<left.size(); j++)
+                    for(int k=0; k<right.size(); k++)
+                    {
+                        switch(ch)
+                        {
+                        case '+':
+                            res.push_back(left[j]+right[k]);
+                            break;
+                        case '-':
+                            res.push_back(left[j]-right[k]);
+                            break;
+                        case '*':
+                            res.push_back(left[j]*right[k]);
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+            }
+        }
+        if(res.size()==0)
+        {
+            int num;
+            stringstream st;
+            st<<expression;
+            st>>num;
+            res.push_back(num);
+        }
+        return res;
+    }
+};
+
+```
 
