@@ -13,3 +13,5 @@ https://mp.weixin.qq.com/s/7xANFCFUd528Lch3lqcbRg C++学习路线
 https://mp.weixin.qq.com/s/Ta3hf4M5ebhOatj_APr7IA C++后端学习路线szza师兄
 
 腾讯面经 https://blog.nowcoder.net/n/67a38443d9e349e4bade9c12683b860a
+
+CS-note http://www.cyc2018.xyz
