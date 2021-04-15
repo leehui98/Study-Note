@@ -689,3 +689,362 @@ public:
 
 ```
 
+## 5.数学运算技巧
+
+### 5.1位操作
+
+#### 常用位操作
+
+1. 利用或操作‘|’和空格将英文字母转换为小写
+
+   ```cpp
+   ('a' | ' ') = 'a'
+   ('A' | ' ') = 'a'
+   ```
+
+2. 利用与操作‘&’和下划线将英文字母转化为大写
+
+   ```cpp
+   ('b' & '_') = 'B'
+   ('B' & '_') = 'B'
+   ```
+
+3. 利用异或操作‘^'和空格进行英文字符大小写互换，F=AB'+A'B
+
+   ```cpp
+   ('d' ^ ' ') = 'D'
+   ('D' ^ ' ') = 'd'
+   ```
+
+4. 判断两个数是否异号
+
+   ```cpp
+   int x=-1,y=2;
+   bool f=((x^y)<0);//true
+   int x=3,y=3;
+   bool f=((x^y)<0);//false
+   利用补码的性质，最高位代表负系数，其他位代表正系数
+   因为最高位为1时，是负数的最大值；最高位为0，其他位为1，是正数的最大值。故整数的最大值比负数的最大值少一个。
+   ```
+
+5. 不用临时变量交换两个数
+
+   ```cpp
+   int a=1,b=2;
+   a^=b;
+   b^=a;
+   a^=b;
+   ```
+
+6. 加1
+
+   ```cpp
+   int n=1;
+   n=-~n;
+   ```
+
+7. 减1
+
+   ```cpp
+   int n=2;
+   n=~-n;
+   ```
+
+5、6、7图一乐
+
+#### 算法常用操作
+
+1. n&(n-1)，作用是消除数字n的二进制中的最后一个1
+
+   n-1表示，n从低位开始，第一个为1变为0，后面的变为1。n&(n-1)则消除了二进制中最后的一个1。
+
+2. 计算汉明权重
+
+   leetcode-191.位1的个数，计算一个数中1的个数
+
+   ```cpp
+   class Solution {
+   public:
+       int hammingWeight(uint32_t n) {
+           uint32_t temp_n=n;
+           int count=0;
+           while(temp_n){
+               temp_n&=temp_n-1;
+               count++;
+           }
+           return count;
+       }
+   };
+   ```
+
+3. 判断一个数是不是2的指数
+
+   leetcode-231.2的幂
+
+   如果一个数是2的指数，那么他的二进制只含有一个1。小于等于0的负数不是2的指数（幂）。
+
+   ```cpp
+   class Solution {
+   public:
+       bool isPowerOfTwo(int n) {
+           if(n<=0) return false;
+           return (n&(n-1))==0;
+       }
+   };
+   ```
+
+4. 查找只出现一次的元素
+
+   异或相同位0，不同为1。
+
+   ```cpp
+   class Solution {
+   public:
+       int singleNumber(vector<int>& nums) {
+           int res=0;
+           for(auto i:nums){
+               res^=i;
+           }
+           return res;
+       }
+   };
+   ```
+
+   
+
+### 5.2 阶乘算法题
+
+#### leetcode-172.阶乘后的零
+
+输入一个非负整数n，请你计算n!的结果末尾有几个0
+
+末尾有几个零，就是有几个2*5的因子，有因为2的数目远远比5的数目多，故就是有多少个5的因子，就是n!每个数可以分解成多少个5。比如说125!，可以分解为125/5+125/25+125/125个5。
+
+```cpp
+class Solution {
+public:
+    int trailingZeroes(int n) {
+        int res=0;
+        for(int d=n;d/5>0;d/=5){
+            res+=d/5;
+        }
+        return res;
+    }
+};
+```
+
+#### leetcode-793.阶乘后K个零
+
+输入一个非负整数K，请你计算有多少个n，满足n!的结果末尾恰好有K个零
+
+思路：n!对应末尾几个零，n递增，则末尾零递增。在[0,LONG_MAX]中二分查找，查找countZero(n)==target的左边界和右边界，返回右边界-左边界+1。如果没有的话，右边界就会比左边界小1，即返回0。左边界和有边界都要是long，
+
+```cpp
+class Solution {
+public:
+    long countZero(long n){
+        long res=0;
+        for(long d=n;d/5>0;d/=5){
+            res+=d/5;
+        }
+        return res;
+    }
+    long preimageSizeFZF(int K) {
+        long right=rightbound(K);
+        long left=leftbound(K);
+        cout<<right<<" "<<left<<endl;
+        return rightbound(K)-leftbound(K)+1;
+    }
+    long leftbound(int target){
+        long left=0,right=LONG_MAX;
+        while(left<right){
+            long mid=left+(right-left)/2;
+            long temp=countZero(mid);
+            if(temp<target){
+                left=mid+1;
+            }
+            else if(temp==target){
+                right=mid;
+            }
+            else if(temp>target){
+                right=mid;
+            }
+        }
+        return left;
+    }
+    long rightbound(int target){
+        long left=0,right=LONG_MAX;
+        while(left<right){
+            long mid=left+(right-left)/2;
+            long temp=countZero(mid);
+            if(temp<target){
+                left=mid+1;
+            }
+            else if(temp==target){
+                left=mid+1;
+            }
+            else if(temp>target){
+                right=mid;
+            }
+        }
+        return left-1;
+    }
+};
+```
+
+### 5.3 寻找素数
+
+素数也叫质数：只能被1和它本身整除
+
+判断是不是素数，从2到sqrt判断能不能被整除。
+
+leetcode-204.计数质数：小于n的质数有多少。
+
+如果i是质数，那么2\*i，3\*i就不是质数，一次类推，最后判断isPrime[i]==true的个数
+
+```cpp
+class Solution {
+public:
+    int countPrimes(int n) {
+        vector<bool> isPrime(n+1,true);
+        int res=0;
+        for(int i=2;i<n;i++){
+            if(isPrime[i])
+                for(int j=i*2;j<n;j+=i)
+                    isPrime[j]=false;
+        }
+        for(int i=2;i<n;i++)
+        if(isPrime[i]) res++;
+        return res;
+    }
+};
+```
+
+## 5.4进行高效的模幂运算
+
+模运算的技巧
+
+对一个乘积求模，等价于对每个因子求模，也等价于对某些个因子求模当作因子相乘再求模。
+
+```cpp
+思路：先定义mypow函数，求a的k次方，首先a对base求模，然后res*=a，res%=base,循环k次。
+
+a^[1,2,3]=(a^3)*(a[1,2,0])=(a^3)\*(a^[1,2])^10，逐步弹出最后一个元素，直到b为空，返回1。
+
+part1=mypow(a,*(b.end()-1));
+
+part2=mypow(superPow(a,b),10);//此时b已经弹出了最后一个元素
+
+return (part1*part2)%base;
+```
+
+```cpp
+(a*b)%k=(a%k)(b%k)%k
+```
+
+```cpp
+class Solution {
+public:
+    int base=1337;
+    int mypow(int n,int k){
+        n%=base;
+        int res=1;
+        for(int _=0;_<k;_++){
+            res*=n;
+            res%=base;
+        }
+        return res;
+    }
+    int superPow(int a, vector<int>& b) {
+        if(b.empty()) return 1;
+        int temp=*(b.end()-1);
+        b.pop_back();
+        int part1=mypow(a,temp);
+        int part2=mypow(superPow(a,b),10)%base;
+        return (part1*part2)%base;
+    }
+};
+```
+
+快速幂运算：
+
+![](./image/快速幂运算.png)
+
+```cpp
+    int mypow(int n,int k){
+        n%=base;
+        if(k==1) return n;
+        if(k==0) return 1;
+        if(k%2==1){
+            return (n*mypow(n,k-1))%base;
+        }
+        else if(k%2==0){
+            int sub=mypow(n,k/2);
+            return (sub*sub)%base;
+        }
+        return -1;
+    }//快速求幂运算
+```
+
+## 5.5 寻找缺失的元素
+
+剑指 Offer 53 - II. 0～n-1中缺失的数字
+
+方法：排序（N*logN）、hashset（N+N）、位运算（N）
+
+异或：相同的数字异或为0，任何数和0异或都是其本身，满足交换律
+
+思路：0~n-1、nums[0]~nums[n-1]全部异或以下，得到最后的结果
+
+```cpp
+class Solution {
+public:
+    int missingNumber(vector<int>& nums) {
+        int res=0;
+        for(int i=0;i<nums.size();i++){
+            res^=i;
+            res^=nums[i];
+        }
+        res^=nums.size();
+        return res;
+    }
+};//异或满足交换律和结合率，总是能把成对的数字消去。留下那个确实的数字
+```
+
+其他算法：等差数列求和、边求和边减
+
+## 5.6 高效寻找缺失和重复的数字
+
+leetcode-645. 错误的集合
+
+方法：遍历哈希，重复push，在遍历not find则push
+
+其他方法：将下标和内容对应起来，比如说内容时4，就将Nums[3]的数值设为负的。如果本来就是负的，表示4重复了。然后遍历以下看那个内容是正的，表示没有被对应，即缺失这个元素。
+
+```cpp
+class Solution {
+public:
+    vector<int> findErrorNums(vector<int>& nums) {
+        vector<int> res;
+        for(int i=0;i<nums.size();i++){
+            int index=(nums[i]<0?-nums[i]:nums[i])-1;
+            if(nums[index]<0) res.push_back(index+1);
+            else nums[index]=-nums[index];
+        }
+        for(int i=0;i<nums.size();i++)
+        if(nums[i]>0){
+            res.push_back(i+1);
+            break;
+        }
+        return res;
+    }
+};
+```
+
+对于这类的数组问题，关键点在于元素和索引是成对儿出现的，常用的方法就是排序、异或、索引。
+
+## 5.7 随机算法之池塘抽水算法
+
+leetcode-398. 随机数索引
+
+leetcode-382. 链表随机节点
