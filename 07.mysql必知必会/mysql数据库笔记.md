@@ -1,6 +1,6 @@
 # 0.使用流程
 
-root hli  
+root hli   
 
 创建数据库 CREATE DATABASE mytest;
 
