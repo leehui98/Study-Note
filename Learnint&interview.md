@@ -6,8 +6,6 @@ https://github.com/huihut/interview  面试笔记
 
 https://zhuanlan.zhihu.com/p/274473971 腾讯研发C++
 
-https://github.com/0voice/interview_internal_reference 公司分类面经
-
 https://mp.weixin.qq.com/s/7xANFCFUd528Lch3lqcbRg C++学习路线
 
 https://mp.weixin.qq.com/s/Ta3hf4M5ebhOatj_APr7IA C++后端学习路线szza师兄
@@ -16,6 +14,9 @@ https://mp.weixin.qq.com/s/Ta3hf4M5ebhOatj_APr7IA C++后端学习路线szza师�
 
 CS-note http://www.cyc2018.xyz
 
-http://github.com/afatcoder/leetcodetop
+各互联网公司技术岗考察leetcode题目的热度：http://github.com/afatcoder/leetcodetop
 
-https://github.com/forthespada/CS-Books
+各互联网公司面经：https://github.com/0voice/interview_internal_reference 
+
+书：https://github.com/forthespada/CS-Books
+
