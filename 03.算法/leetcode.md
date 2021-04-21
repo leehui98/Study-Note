@@ -434,6 +434,8 @@ public:
 
 BFS是集体行动,DFS是单独行动
 
+也可以用递归
+
 ## leetcode-752 打开转盘锁
 
 ```cpp
@@ -538,7 +540,7 @@ int main()
 
 - 查找一个数[left,right]，left=mid+1,right=mid-1,return mid;
 - 查找左边界[left,right)，left=mid+1,right=mid,return left;
-- 查找有边界[left,right)，left=mid+1,right=mid.return left-1;
+- 查找右边界[left,right)，left=mid+1,right=mid.return left-1;
 
 
 
