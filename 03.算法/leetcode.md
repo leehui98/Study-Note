@@ -25,12 +25,18 @@ memo.erase(key);
 ## priority_queue
 
 ```cpp
-#include<priority_queu>
+#include<queue>
 
 priority_queue<int,vector<int>,less<int>> q; //大顶堆，根节点比子树大
 
 priority_queue<int,vector<int>,greater<int>> q;//小顶堆，根节点比子树小
 empty、size、front、push_back、pop_back
+struct cmp{
+    operator()(int a,int b){
+        return a<b;//大根堆，根节点最大
+    }
+};
+//自定义二叉堆
 ```
 
 ```cpp
@@ -48,6 +54,30 @@ vec.insert(vec.begin()+1,1);
 
 ```cpp
 对某个数向上取整：（M+(N-1)）/N
+```
+
+## map
+
+```cpp
+//有序集合，红黑树实现，less<int>是根节点最小
+#include<map>
+map<int,int,cmp> memo;
+memo.begin()->first;
+memo.end()->second;
+memo[1]=1;
+memo.erase(1);
+```
+
+## set
+
+```cpp
+//set是有序集合
+set<int,less<int>> s;//递增
+set<int,greater<int>> s;//递减
+s.insert(1);
+s.erase(1);
+for(auto cur:s)
+    cout<<*cur;
 ```
 
 
