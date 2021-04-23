@@ -10,6 +10,9 @@ s.erase(0,1);//删除第0个元素及其后面的共1个元素
 s.insert(s.begin(),'1');//在第0个元素插入字符'1'
 
 s.substr(int pos,int num);//pos是位置，num是从这个位置开始的数量
+s.substr(i,j-i+1);//表示字符串s[i,j]的子串
+s.substr(i,j-i);//表示从i到j-1的子串
+
 
 reverse(s.begin(),s.end());//反转字符串
 ```
