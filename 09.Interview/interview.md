@@ -236,7 +236,101 @@ brk成功返回0，失败返回-1，并将error设置为ENOMEM。sbrk成功时�
 
 小技巧：如果把increment设置为0，返回当前break对应的指针。
 
+注意：linux是按页进行内存映射的，如果break被设置为没有按页大小对齐，则系统实际上会在最后映射一个完整的页，从而实际上已映射的空间比break指向的地方要大一些。但是使用break之后的地址是很危险的。
 
+**资源限制与rlimit：**每个进程有一个rlimit表示当前进程可用的资源上限，这个限制可以通过getrlimit和setrlimit来获取和设置。非特权进程只能设置软限制，且不能超过硬限制。
+
+**玩具实现：**
+
+```cpp
+#include<sys/type.h>
+#inlcude<unistd.h>
+void* malloc(size_t size){
+    void* p;
+    p=sbrk(0);
+    if(sbrk(size)==(void*)-1)
+        return NULL;
+    return p;
+}
+```
+
+**正式实现：**玩具实现不能记录大小，在释放的时候不方便
+
+①数据结构：将堆内存空间以块的形式组织起来，每个块有meta区和数据区组成，meta区记录数据块的元信息（数据区大小，空闲标志位，指针），数据区是真实分配的内存区域，并且数据区的第一个字节就是malloc返回的地址。
+
+```cpp
+typedef s_block* t_block;
+struct s_block{
+   size_t size;//数据区大小
+   t_block next;//指向下个块的指针
+   int free;//是否为空闲块
+   int padding;//填充4个字节，保证meta块长度为8的倍数
+   char data[1];//这是一个虚拟字段，表述数据块的第一个字节，长度不计入meta
+};
+```
+
+②寻找合适的块
+
+策略：
+
+first fit：从头开始，第一个size大于要求的块。运行效率高。
+
+best fit：全部遍历完，找到size大于要求的块，且差值最小的那个。内存使用率高。
+
+```cpp
+//first fit
+t_block find_block(t_block *last,size_t size){
+    t_block b=first_block;
+    while(b&&!(b->free&&b->size>size))
+    {
+        *last=b;
+        b=b->next;
+    }
+    return b;
+}
+```
+
+last指针是为了找不到合适的块在last后面开辟新的块
+
+③开辟新的块
+
+找不到就新建一个块，关键是使用sbrk创建一个struct
+
+```cpp
+#define BLOCK_SIZE 16
+t_block extend_block(t_block last,size_t size){
+    t_block b;
+    b=sbrk(0);
+    if(sbrk(BLOCK_SIZE+size)==(void*)-1)
+       return NULL;
+    b->next=NULL;
+    b->size=size;
+    if(last)
+        last->next=b;
+    b->free=0;
+    return b;
+}
+```
+
+④分裂block
+
+first有一个比较致命的缺点就是小的size可能会占据较大的空间，为了提高内存利用率，需要分裂块
+
+```cpp
+void spilt(t_block b,size_t size){//定位下一个块，设置下一个块的元素，设置当前块的元素
+    t_block new;
+    new=b->data+size;
+    new->next=b->next;
+    new->size=b->size-size-BLOCK_SIZE;
+    new->free=1;
+    b->size=size;
+    b->next=new;
+}
+```
+
+malloc时遍历，无合适开辟，有合适分裂。
+
+free检查有效性（在first_block和sbrk(0)之间），通过偏移量定位到当前t_block，判断	getblock(p)->ptr==p。如果是中间的，free=1，看看是否可以合并（需要使用双向链表）。tail，通过brk(geblockt(p))归还内存。
 
 
 

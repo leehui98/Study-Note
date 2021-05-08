@@ -6,7 +6,7 @@ root hli
 
 使用数据库 use mytest;
 
-创建表格 CREATE TABLE student{ id int,name varcahr(255),address varchar(255),city varchar(255)};
+创建表格 CREATE TABLE student(id int,name varcahr(255),address varchar(255),city varchar(255));
 
 插入数据 INSERT INFO student VALUES (1,"张三","山东","济南");
 
@@ -46,7 +46,7 @@ mysql --version
 ## 显示所有数据库
 
 ```mysql
-show dattabases;
+show databases;
 ```
 
 
@@ -185,7 +185,7 @@ drop databases if exists 库名;
 ## 创建表
 
 ```mysql
-create table 表明(
+create table 表名(
 	字段名1 类型[(宽度)] [约束条件] [comment '字段说明']，
 	字段名2 类型[(宽度)] [约束条件] [comment '字段说明']，
 	字段名3 类型[(宽度)] [约束条件] [comment '字段说明']
@@ -531,10 +531,8 @@ group_condition：分组之后对数据进行过滤
 where & group by & having & order by &limit一起协作
 
 ```mysql
-select 列名 from 表名
-where [查询条件]
-group by [分组表达式]
-having [分组后的过滤条件]
+ 
+group by [分组表达式] having [分组后的过滤条件]
 order by [排序条件]
 limit [offset,] count;
 ```
@@ -680,12 +678,12 @@ start transaction read only;
 
 mysql默认的隔离级别时可重复读。
 
-1. 读未提交，可以读取没有被提交的数据。不能解决脏读、不可重复读、幻读。
-2. 读已提交，能够读取已提交的数据。能解决脏读，不能解决不可重复度，幻读。
-3. 可重复读，数据读取出来之后加锁，该事务结束之前，别人无法修改它。解决了脏读、不可重复读，不能解决幻读。
+1. 读未提交，可以读取没有被提交的数据。不能解决脏读、不可重复读、幻读。无锁。
+2. 读已提交，能够读取已提交的数据。能解决脏读，不能解决不可重复度，幻读。有读写锁。
+3. 可重复读，数据读取出来之后加锁，该事务结束之前，别人无法修改它。解决了脏读、不可重复读，不能解决幻读。行读写锁。
 4. 串行化，事务串行执行，肯定不会相互影响，可以解决脏读、不可重复读、幻读，但是效率低。
 
-解决幻读的其他办法：间隙锁+行锁的next-key lock解决。
+解决幻读的其他办法：记录锁+间隙锁，记录锁是加在索引之上的，间隙锁是加在索引之间的。
 
 查看隔离级别
 
@@ -763,7 +761,7 @@ InnoDB里有两种索引：主键索引、辅助索引
 
 辅助索引：可以有多个辅助索引，叶子节点存储的是主键的值。<font color=red>使用非主键进行索引。</font>问题：为什么辅助索引不向myisam那样存储记录的地址。数据发生变更时，会影响其他其他记录的地址，如果辅助索引中记录地址，会受到影响，但是主键一般时很少更新的，当记录发生地址变更时，对辅助索引没有影响。 
 
-优缺点：表中存储的数据按照索引的顺序存储，检索效率比普通索引高，但是对新增、修改、删除数据的影响比较大。
+优缺点：表中存储的数据按照索引的顺序存储，检索效率比非聚簇索引高，但是对新增、修改、删除数据的影响比较大。
 
 ### MyISAM中的索引，使用的是非聚簇索引
 
