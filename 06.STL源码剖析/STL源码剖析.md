@@ -268,6 +268,8 @@ list<string,__gun_cxx::malloc_allocator<string>> c2;
 
 # 2.STL
 
+先观察数据
+
 源代码：gun c++ 2.9
 
 #include<bits/stdc++.h>
@@ -283,4 +285,83 @@ list<string,__gun_cxx::malloc_allocator<string>> c2;
 ![](./image/特化2.png)
 
 ![](./image/特化3.png)
+
+## 分配器
+
+所有的分配动作最后都会调用malloc()函数
+
+operator new()
+
+分配器allocator分配内存的时候调用operator new()，deallocator调用operator delete()；没有任何其他设计。
+
+G2.9 STL对allocator的使用：默认分配器时alloc，设计了16条单向链表，每一条链表负责特定大小的区块，第一条链表管理8个字节的区块，依次到16条链表，管理的是16*8字节大小的区块。这样cookie就会少很多。容器的元素的大小会被调整到8的倍数。类似于内存块。
+
+## 2.1 list
+
+list里面每一个元素要消耗两个指针、一个data
+
+i++重载有个int参数，但是没有实际意义。
+
+++i重载没有参数
+
+++i返回i本身。
+
+i++返回一个临时变量。++i返回对象本身。
+
+```cpp
+self operator++(int){self temp=*this;++*this;return temp;}
+//先调用拷贝构造函数，然后调用*重载，然后++，操作，然后返回temp临时变量
+```
+
+## 2.2 Iterator的设计原则
+
+trait 特征
+
+迭代器是算法和容器之间的桥梁，一般是传入begin()和end()
+
+设计的原则：萃取类型（只能往后移动一个或者可以随机访问）、iterator指向元素的类型、两个之间的距离应该用什么来表现、指针和引用（没使用过）。
+
+## 2.3 vector
+
+类似于数组，如果空间不够的话，就在其他地方申请二倍的空间，把原来的数据拷贝到这个空间。
+
+begin(){return start;}
+
+end(){return finish;}
+
+size_type size(){return size_type(end()-begin());}
+
+size_type capacity(){return end_of_storage-begin();}
+
+bool empty(){return end()==begin();}
+
+## 2.4 array
+
+如果定义数组的大小是0，就指定为1，如果不是0，就是原来的大小
+
+## 2.5 deque
+
+双向开头的一个空间，多个buffer，缓冲区
+
+支持随机访问，即中括号。
+
+iterator具有的内容是：cur、first、last、node
+
+迭代器的大小是16byte
+
+BufSiz=0，默认值，如果不是0，就是指定的，默认512个字节+，一个元素大于512字节，就是元素的大小，如果小于512字节，大小就是512/SZ。
+
+insert的时候很聪明：是否插入头部？是否插入尾部？看往哪边推动进？ 
+
+离哪边进的判断方法：index=pos-start；index<size()/2 靠头部进，否则，靠尾端近
+
+**如何模拟连续空间**
+
+finish-start的实现：查看中间有多少个缓冲区，缓冲区的个数*缓冲区的元素数+两端的偏移量。模拟连续都是deque::iterator的功劳  
+
+（两个node在控制中心的位置相减-1）*缓冲区元素的个数+当前node的cur-first+被减node的last-cur
+
+在++或者--的时候，要判断是否在边界上。
+
+## 2.6 forward_list
 
