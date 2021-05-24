@@ -1,3 +1,5 @@
+笔记：https://blog.csdn.net/ncepu_Chen/article/details/114947710
+
 C++标准库不需要带.h，如#include\<vecor>
 
 新式C head file不带.h，如#include\<cstdio>
@@ -296,7 +298,9 @@ operator new()
 
 G2.9 STL对allocator的使用：默认分配器时alloc，设计了16条单向链表，每一条链表负责特定大小的区块，第一条链表管理8个字节的区块，依次到16条链表，管理的是16*8字节大小的区块。这样cookie就会少很多。容器的元素的大小会被调整到8的倍数。类似于内存块。
 
-## 2.1 list
+## 2.1序列式容器 
+
+### 2.1.1 list
 
 list里面每一个元素要消耗两个指针、一个data
 
@@ -313,7 +317,7 @@ self operator++(int){self temp=*this;++*this;return temp;}
 //先调用拷贝构造函数，然后调用*重载，然后++，操作，然后返回temp临时变量
 ```
 
-## 2.2 Iterator的设计原则
+### 2.1.2 Iterator的设计原则
 
 trait 特征
 
@@ -321,7 +325,7 @@ trait 特征
 
 设计的原则：萃取类型（只能往后移动一个或者可以随机访问）、iterator指向元素的类型、两个之间的距离应该用什么来表现、指针和引用（没使用过）。
 
-## 2.3 vector
+### 2.1.3 vector
 
 类似于数组，如果空间不够的话，就在其他地方申请二倍的空间，把原来的数据拷贝到这个空间。
 
@@ -335,11 +339,11 @@ size_type capacity(){return end_of_storage-begin();}
 
 bool empty(){return end()==begin();}
 
-## 2.4 array
+### 2.1.4 array
 
 如果定义数组的大小是0，就指定为1，如果不是0，就是原来的大小
 
-## 2.5 deque
+### 2.1.5 deque
 
 双向开头的一个空间，多个buffer，缓冲区
 
@@ -363,5 +367,211 @@ finish-start的实现：查看中间有多少个缓冲区，缓冲区的个数*�
 
 在++或者--的时候，要判断是否在边界上。
 
-## 2.6 forward_list
+重载+=操作符的时候，需要判断有无在一个缓冲区内，如果在一个缓冲区内，直接加，不在一个缓冲区内需要却换到正确的缓冲区。
+
+重载-=相当于，+=-n
+
+deque有4个变量：控制中心（控制一个个的缓冲区，用vector实现，扩充缓冲区是copy到中段，这样可以向右扩充缓冲区，也可以向左扩充缓冲区）、大小、头指针、尾指针
+
+stack和queue可以使用list、deque实现的。
+
+stack和queue都不允许遍历，也不提供iterator
+
+### 2.1.6 forward_list
+
+单向链表
+
+## 2.2 关联式容器 
+
+### 2.2.1 rb_tree
+
+红黑树是一种高度平衡二分查找树，没有结点太深。
+
+红黑树的迭代器++是一个排列的状态，不应该使用红黑树的iterator的值去赋值，意味着可以更改value，不能更改key。
+
+提供两种操作：insert_unique(),insert_equal()。
+
+仿函数的大小是0，创造出的对象是1。
+
+仿函数：一个类重载小括号，这样使得这个类的使用就像一个函数。
+
+indetity\<T>表示两者是同一个东西。gun独有的。
+
+### 2.2.2 set和multiset
+
+set和multiset是以红黑树为基础的。key和value合二为一。提供遍历操作，即迭代器，按正常规则++遍历，便能获得排序状态。不能通过迭代器赋值(迭代器是const_iteratot)。
+
+set的key是独一无二的，调用insert_unique()
+
+multiset的key是可以重复的，调用insert_equal()
+
+### 2.2.3 map和multimap
+
+可以++遍历，可以通过迭代器改变value，但是不能改变key的值，将user_key设置为const。
+
+map可以使用中括号，multimap不可以使用中括号。如果中括号里的key不存在，则将key设置为默认值。
+
+lower_bound()，存在返回左边界，不存在返回适合插入这个值的那个点。中括号要先调用lower_bound(),在调用insert，insert直接调用insert
+
+## 2.3 hashtable
+
+碰撞：不同的对象通过哈希函数得到相同的哈希值。
+
+- 解决哈希冲突的办法
+
+  开放定址法：线性探测再散列、二次探测再散列、伪随机探测再散列。Hi=（H（key）+di）mod m。
+
+  再哈希法：产生冲突后再计算另一个哈希函数的地址，直到不冲突。
+
+  链地址法：把冲突的元素排成一个链表。链表太长（元素的个数大于元素的个数）就将他打散（篮子增加两倍  ）。
+
+  建立一个公共溢出区：冲突的元素放在这个公共溢出区中
+
+vc是双向链表，gnu是单向链表
+
+hash函数：如果是数组就当作编号；如果是字符串对每个字符进行操作。没有提供现成的hash\<std::string>
+
+unordered的概念：无序
+
+篮子永远大于元素的个数，篮子的个数两倍扩容
+
+# 3.算法
+
+容器是类模板
+
+算法是函数模板
+
+迭代器是类模板
+
+仿函数是类模板
+
+适配器是类模板
+
+分配器是类模板
+
+- 适配器
+
+  将一个class的接口转换为另一个class的接口。
+
+  容器适配器：比如说堆队列就是容器适配器，是使用deque的接口呈现出的另一种容器风貌。
+
+  迭代器适配器：insert iterator，将一般迭代器的赋值操作转变为插入操作。reverse iterator是operator++操作符转变为后退操作。iostream iterator，将某个迭代器绑定到ostram对象身上，称为ostream_iterator，拥有输出功能。
+
+  仿函数适配器
+
+算法的形式
+
+```cpp
+template<typename Iterator>
+Algorithm(Iterator itr1,Iterator itr2)
+{
+    ...
+}
+template<typename Iterator,typename Cmp>
+Altorithm(Iterator itr1,Iterator itr2,Cmp comp)
+{
+    ...
+}
+```
+
+算法和容器之间的关联是通过迭代器实现的
+
+迭代器分类：随机、双向、单向、input_iterator_tag、output_iterator_tag
+
+分类不用12345分类，而用class，可以实现重载，显示相应的类型
+
+```cpp
+template<class InputIterator>
+distance(InputIterator first,InputIterator last){
+    先问一下萃取机迭代器是什么类型
+    //相减，连续空间，random_iterator_tag
+    //从头走到尾巴，看看走了几步，input_iterator_tag
+}
+advance(InputIterator& i,Distance n){
+    先问萃取机是什么类型的
+    //直接加n
+    //一步步的走
+}
+函数中没有子类的重载，调用父类的重载，即派生类转基类，派生类的部分被切掉。
+```
+
+## 3.1 算法源码剖析
+
+### 1.accumulate
+
+对区间的元素“累计算”到init上
+
+![](./image/算法-accmulate.png)
+
+### 2. for_each
+
+对区间的每一个元素做运算
+
+![](./image/算法-for_each.png)
+
+```cpp
+for(decl:coll)
+{
+    statement;
+}
+```
+
+### 3.replace, replace if, replace_copy
+
+![](./image/算法-replace.png)
+
+ replace_copy： 范围内等于旧值得都已新值防止新区见，不符合的原值放到新区间。
+
+### 4.count，count_if
+
+![](./image/算法-count.png)
+
+容器不带成员函数count、count_if的：array、vector、list、forward_list、deque
+
+容器带有成员函数count：
+
+set/multiset、map/multimap、unordered_set/unordered_multiset、unordered_map/unordered_multimap
+
+### 5.find,find_if
+
+ ![](./image/算法-find.png)
+
+容器不带成员函数count、count_if的：array、vector、list、forward_list、deque
+
+容器带有成员函数count：
+
+set/multiset、map/multimap、unordered_set/unordered_multiset、unordered_map/unordered_multimap
+
+### 6.sort
+
+要求random，就是可以跳。
+
+```cpp
+void sort(v.begin(),v.end(),myfun);
+v.rbegin();//逆向头
+```
+
+
+
+```cpp
+revece_iterator  rbegin(){	
+	return reverse_iterator(end());
+}//reverse_iterator适配器，改变一下end()的行为，rend()同理
+```
+
+排序方法是快排， 时间复杂度是O(nlogn)
+
+容器不带成员函数count、count_if的：array、vector、list、forward_list、deque
+
+容器没有sort：
+
+set/multiset、map/multimap、unordered_set/unordered_multiset、unordered_map/unordered_multimap
+
+容器中带有sort：list、forward_list
+
+### 7.binary_serch
+
+二分查找，使用之前一定要排序
+
+![](./image/算法-binary_search.png)
 
