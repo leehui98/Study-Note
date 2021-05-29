@@ -96,7 +96,7 @@ for(auto& elem:vec){elem*=3;}
 auto ite=::find(c.begin(),c.end(),target);
 ```
 
-# 1. 容器
+# 1. 容器、迭代器
 
 分类：序列式、关联式（key-value）、unordered Containers（不定序容器，hash_table）
 
@@ -575,3 +575,220 @@ set/multiset、map/multimap、unordered_set/unordered_multiset、unordered_map/u
 
 ![](./image/算法-binary_search.png)
 
+# 4.仿函数 functors
+
+可以尝试融入到STL中，是最简单的
+
+仿函数只为算法服务。
+
+重载小括号（）
+
+算术类、逻辑运算类、相对比较类
+
+gnuc++独有的：identity、select1st、select2nd
+
+没有继承public binary_function<T,T,bool>就是没有融入STL中。
+
+仿函数的可适配条件（可以被调整、修改）：STL规定每个适配仿函数，都应该挑选unary_function或者binary_function来继承。因为Function Adaptor会提出红色问题。
+
+![](./image/STL问题.png)
+
+适配器要问问题、仿函数要回答问题，这样就可以被适配器修饰或者改造，所以要继承上面两个适当的类。
+
+# 5.适配器
+
+改一下接口，适用于另外一个场景。
+
+仿函数适配器、迭代器适配器、容器适配器
+
+共性：适配器改造某个东西后，比如说将B改造成A，A是面向用户的，但是是B去实现的功能。方式：继承B，内含B。STL中都是使用内含的。
+
+容器适配器：stack、queue内含一个deque。
+
+函数适配器：binder2nd，把第二参数绑定为40。
+
+```cpp
+cout<<count_if(v.begin(),v.end(),
+              not1(bind2nd(less<int>(),40)));
+```
+
+## 5.1仿函数适配器
+
+bind1st、bind2nd、not1、not2
+
+**binder2nd**
+
+bind2nd是一个类，返回一个binder2nd对象，把操作和参数记录下来，使用的时候直接使用。
+
+![](./image/适配器.png)
+
+operation::second_argument_type会问x是什么类型。
+
+问三个问题：第一个实参type、第二个实参type、返回参数type
+
+如果能回答就是可被适配的。如上一个图，继承两个class。
+
+新型适配器：bind
+
+**not1**
+
+不，取非
+
+**bind**
+
+```cpp
+std::bind可以绑定：
+1. function;
+2. function objuect;
+3. memeber functions,_1必须是某个object的地址
+4. data memeber,_1必须是某个object的地址
+
+using namespace std::placeholder;
+double myfun(double x,double y){
+    return x/y;
+}
+//1.绑定函数
+auto fn_five=std::bind(myfun,10,2);
+cout<<fn_five()<<endl;//5
+
+auto fn_half=std::bind(myfun,_1,2);//将第一个参数绑定为2
+cout<<fn_half(10)<<endl;//5
+
+auto fn_invert=std::bind(myfun,_2,_1);
+cout<<fn_invert(10,2);//0.2
+
+auto fn_rounding=std::bind<int>(myfun,_1,_2);//绑定返回类型
+cout<<fn_rounding(10,3)<<endl;//3
+
+//2.绑定成员
+class Mypair{
+    int a;int b;
+    int multiply(){return a*b;}
+};
+Mypair ten_two{10,2};
+auto bound_memfn=bind(&Mypair::mutliply,_1);
+cout<<bound_memfn(ten_two)<<endl;//20
+auto bound_memdata=bind(&Mypair::a,ten_two);
+cout<<bound_memdata()<<endl;//10
+auto bound_memdata2=bin(&Mypair::b,_1);
+cout<<bound_memdata2(ten_two)<<endl;//2	 
+
+vector<int> v;
+v.cbegin();//const begin();
+```
+
+## 5.2 迭代器的适配器
+
+适配器改造迭代器
+
+**reverse_iterator**：rbegin()、rend()
+
+![](./image/reverse_iterator.png)
+
+适配器就是将所要修饰、改的东西记起来，然后再看看怎么改造他。
+
+**inserter**
+
+指针加一个数：advance(it,3);迭代器往后加3
+
+copy是assign
+
+inserter是push_back
+
+![](./image/inserter.png)
+
+## 5.3 容器适配器
+
+使用deque实现queue和stack
+
+## 5.4 X适配器
+
+**ostream_iterator**
+
+![](./image/ostream_iterator.png)
+
+**istream_iterator**
+
+![](./image/istream_iterator1.png)
+
+​                      ![](./image/istream_iterator2.png)
+
+# 6. 其他
+
+**一个万用的hash function：hash_val();**
+
+![li712](./image/hash function.png)
+
+设计一个hash function的规则：设计一个函数、或者设计一个类重载小括号操作符(仿函数)
+
+![](./image/hash_val.png)
+
+
+
+​     set.bucket_count();//篮子的个数，篮子的个数永远大于元素的个数
+
+**tuple：组合**
+
+```cpp
+string 的 sizeof  
+tuple<int,float,string> t1(1,2.0,"nico");  
+cout<< get<0>(t1);//输出第0个元素
+tuple可以赋值，比大小，丢给cout（设置操作符重载）;
+
+tuple<int,flloat,string> t3(77,1.1,"more");
+int i1;
+float f1;
+string s1;
+tie(i1,f1,s1)=t3;//绑定参数
+tuple_size<t3>::value;//得到tuple的参数有几个，也可以一问一答
+```
+
+![](./image/tuple.png)
+
+return *this经过转型指向的是上面的那两块
+
+**type traits**
+
+![](./image/traits.png)
+
+一问一答，是否重要，然后偏特化
+
+ 带着指针的类，构造函数、copy构造函数重要
+
+POD：平淡的旧格式，就是C的struct
+
+**type traits实现**
+
+1. is_void
+
+   ![](./image/is_void.png)
+
+   先拿掉cv，const、volatile ，然后使用泛化和偏特化实现是不是void
+
+2. is_integral
+
+   ![](./image/is_intertral.png)
+
+3. 其他
+
+   ![](./IMAGE/其他.png)
+
+   编译器暗中帮助标准库
+
+   grep 全文检索
+
+**cout输出其他对象需要定义重载**
+
+**moveable元素对于vector速度的影响**
+
+vector两倍扩张，调用的拷贝构造函数可能会多余push_back的元素数目。
+
+类内是静态的，要在类外定义
+
+move之后的东西不能再被使用。
+
+vector的深拷贝：使用copy（）函数
+
+vector的浅拷贝：将三个指针start、finish、end_of_storage交换
+
+string有使用move版本
